@@ -823,7 +823,8 @@ classUSER::Cheat_get(CStrVAR* pStrVAR, char* pArg1, char* pArg2, char* szCode) {
 
 // A 등급
 short
-classUSER::Cheat_item(char* pArg1, char* pArg2, char* pArg3, char* pArg4) {
+classUSER::Cheat_item(char* pArg1, char* pArg2, char* pArg3, char* pArg4, 
+    char* pArg5, char* pArg6, char* pArg7) {
     if (B_Cheater()) {
         int item_type = atoi(pArg1);
         int item_id = atoi(pArg2);
@@ -877,6 +878,41 @@ classUSER::Cheat_item(char* pArg1, char* pArg2, char* pArg3, char* pArg4) {
                         }
                     }
                 }
+
+                if (pArg5) {
+                    int iGrade = atoi(pArg5);
+                    if (iGrade < 0) {
+                        iGrade = 0;
+                    }
+                    if (iGrade > 9) {
+                        iGrade = 9;
+                    }
+                    item.m_cGrade = iGrade;
+                }
+
+                if (pArg6) {
+                    int iDurability = atoi(pArg6);
+                    const int max_durability =
+                        ITEM_DURABITY(item.m_cType, item.m_nItemNo);
+                    if (iDurability < 0) {
+                        iDurability = 0;
+                    }
+                    if (iDurability > max_durability) {
+                        iDurability = max_durability;
+                    }
+                    item.m_cDurability = iDurability;
+                }
+
+                if (pArg7) {
+                    int lifespan_pct = atoi(pArg7);
+                    if (lifespan_pct < 0) {
+                        lifespan_pct = 0;
+                    }
+                    if (lifespan_pct > 100) {
+                        lifespan_pct = 100;
+                    }
+                    item.m_nLife = (MAX_ITEM_LIFE * lifespan_pct) / 100;
+                }
             }
 
             short nInvIDX = this->Add_ITEM(item);
@@ -886,7 +922,11 @@ classUSER::Cheat_item(char* pArg1, char* pArg2, char* pArg3, char* pArg4) {
                 this->Send_gsv_WHISPER("Server", const_cast<char*>(msg.c_str()));
                 return CHEAT_PROCED;
             }
+
+            this->Send_gsv_WHISPER("Server", "Failed to add item (inventory full?)");
         }
+    } else {
+        this->Send_gsv_WHISPER("Server", "Insufficient GM rights for /item");
     }
     return CHEAT_INVALID;
 }
@@ -1366,11 +1406,15 @@ classUSER::Parse_CheatCODE(char* szCode) {
             if (!pArg2 || !pArg3) {
                 this->Send_gsv_WHISPER("Server", "Usage: /item <type_id> <item_id> <quantity>");
                 this->Send_gsv_WHISPER("Server",
-                    "Usage: /item <type_id> <item_id> <stat_id> <socket>");
+                    "Usage: /item <type_id> <item_id> <stat_id> <socket> <grade> <durability> "
+                    "<lifespan_pct>");
                 return CHEAT_INVALID;
             }
             char* pArg4 = pStrVAR->GetTokenNext(pDelimiters);
-            return Cheat_item(pArg1, pArg2, pArg3, pArg4);
+            char* pArg5 = pStrVAR->GetTokenNext(pDelimiters);
+            char* pArg6 = pStrVAR->GetTokenNext(pDelimiters);
+            char* pArg7 = pStrVAR->GetTokenNext(pDelimiters);
+            return Cheat_item(pArg1, pArg2, pArg3, pArg4, pArg5, pArg6, pArg7);
         }
 
         if (!strcmpi(pToken, "/GET")) {

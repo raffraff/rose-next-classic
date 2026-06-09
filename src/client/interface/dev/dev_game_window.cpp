@@ -219,18 +219,28 @@ draw_item_tab(GameWindowState& state) {
 
                 std::string button_label = fmt::format("Spawn##{}_{}", item_type, item_id);
                 if (ImGui::Button(button_label.c_str())) {
+                    if (!g_pNet || g_pNet->m_bWarping) {
+                        g_itMGR.AppendChatMsg("Cannot spawn item while disconnected or warping.",
+                            IT_MGR::CHAT_TYPE_SYSTEM);
+                        continue;
+                    }
+
                     std::string spawn_cmd;
                     if (tagBaseITEM::is_stackable(item_type)) {
                         spawn_cmd =
                             fmt::format("/item {} {} {}", item_type, item_id, spawn_item_quantity);
                     } else {
-                        spawn_cmd = fmt::format("/item {} {} {} {}",
+                        spawn_cmd = fmt::format("/item {} {} {} {} {} {} {}",
                             item_type,
                             item_id,
                             spawn_item_stat_id,
-                            spawn_item_socket ? 1 : 0);
+                            spawn_item_socket ? 1 : 0,
+                            spawn_item_refine,
+                            spawn_item_durability,
+                            spawn_item_lifespan);
                     }
                     g_pNet->Send_cli_CHAT(const_cast<char*>(spawn_cmd.c_str()));
+                    g_itMGR.AppendChatMsg(spawn_cmd.c_str(), IT_MGR::CHAT_TYPE_SYSTEM);
                 }
                 ImGui::SameLine(65.0f);
                 ImGui::Text("%d:%d", item_type, item_id);
