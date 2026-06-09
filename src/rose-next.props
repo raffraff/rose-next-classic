@@ -6,7 +6,11 @@
     <GeneratedDirCommon>$(SolutionDir)build\gen\common</GeneratedDirCommon>
   </PropertyGroup>
   <PropertyGroup />
-  <ItemDefinitionGroup />
+  <ItemDefinitionGroup>
+    <Link>
+      <AdditionalDependencies>ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <BuildMacro Include="GeneratedDir">
       <Value>$(GeneratedDir)</Value>
