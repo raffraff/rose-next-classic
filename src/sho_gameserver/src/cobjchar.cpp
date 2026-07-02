@@ -894,6 +894,32 @@ CObjCHAR::Apply_DAMAGE(CObjCHAR* pTarget,
             sDamage.m_wACTION &= ~DMG_ACT_HITTED;
             sDamage.m_wACTION |= DMG_ACT_DEAD;
 
+            // Auto-attack nearest hostile mob within range
+            if (this->IsUSER()) {
+                const int AUTO_CHAIN_RANGE = 5000; // ~50m in game units
+                CObjCHAR* pNearest    = NULL;
+                float     fNearestDist = (float)(AUTO_CHAIN_RANGE + 1);
+
+                CObjCHAR* pNext = (CObjCHAR*)this->AI_FindFirstOBJ(AUTO_CHAIN_RANGE);
+                while (pNext) {
+                    if (pNext != pTarget
+                        && pNext->IsNPC()
+                        && pNext->Get_HP() > 0
+                        && !this->Is_ALLIED(pNext))
+                    {
+                        float fDist = this->Get_DISTANCE(pNext);
+                        if (fDist < fNearestDist) {
+                            fNearestDist = fDist;
+                            pNearest     = pNext;
+                        }
+                    }
+                    pNext = (CObjCHAR*)this->AI_FindNextOBJ();
+                }
+
+                if (pNearest)
+                    this->SetCMD_ATTACK(pNearest->Get_TAG());
+            }
+
             return SEND_DAMAGE_TO_SECTOR;
         } else {
             // 수면 상태에서 상대방의 공격을 받으면 풀리게된다.
